@@ -1,53 +1,9 @@
 ---
 - name: Install Storefront Pre-Reqs
   win_feature:
-    name:
-    - Web-Server
-    - Web-WebServer
-    - Web-Common-Http
-    - Web-Default-Doc
-    - Web-Dir-Browsing
-    - Web-Http-Errors
-    - Web-Static-Content
-    - Web-Http-Redirect
-    - Web-Health
-    - Web-Http-Logging
-    - Web-Log-Libraries
-    - Web-Http-Tracing
-    - Web-Performance
-    - Web-Stat-Compression
-    - Web-Dyn-Compression
-    - Web-Security
-    - Web-Filtering
-    - Web-Basic-Auth
-    - Web-Windows-Auth
-    - Web-App-Dev
-    - Web-Net-Ext45
-    - Web-AppInit
-    - Web-ASP
-    - Web-Asp-Net45
-    - Web-CGI
-    - Web-ISAPI-Ext
-    - Web-ISAPI-Filter
-    - Web-Includes
-    - Web-Mgmt-Tools
-    - Web-Mgmt-Console
-    - Web-Mgmt-Compat
-    - Web-Metabase
-    - Web-Lgcy-Mgmt-Console
-    - Web-Lgcy-Scripting
-    - Web-WMI
-    - Web-Scripting-Tools
-    - NET-Framework-Features
-    - NET-Framework-45-Features
-    - NET-Framework-45-Core
-    - NET-Framework-45-ASPNET
-    - NET-WCF-Services45
-    - NET-WCF-HTTP-Activation45
-    - NET-WCF-TCP-PortSharing45
-    - WAS
-    - Telnet-Client
+    name: '{{ item }}'
     state: present
+  with_items: '{{ citrix_storefront_prereqs }}'
   register: win_feature
 
 - name: Reboot
@@ -61,7 +17,7 @@
 
 - name: Map SMB share
   win_shell: |
-    net use \\10.10.1.18 "deviceTRUST$" /user:share
+    net use '{{ smb_share.path }}' '{{ smb_share.password }}' /user:'{{ smb_share.user }}'
 
 - name: Install Storefront Components
   block:
