@@ -24,7 +24,7 @@
     letter: Z
     path: '\\10.10.1.18' # ToDo
     state: present
-    username: '{{ smb_share.user }}'
+    username: '{{ smb_share.username }}'
     password: '{{ smb_share.password }}'
   with_items: '{{ smb_share }}'
 
