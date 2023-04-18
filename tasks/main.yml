@@ -30,7 +30,7 @@
 
 - name: Map SMB share
   win_shell: |
-    net use '\\''{{ smb_share.path }}' '{{ smb_share.password }}' /user:'{{ smb_share.user }}'
+    net use \\'{{ smb_share.path }}' '{{ smb_share.password }}' /user:'{{ smb_share.user }}'
   with_items: '{{ smb_share }}'
 
 - name: Install Storefront Components
