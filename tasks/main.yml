@@ -19,19 +19,19 @@
   ansible.builtin.debug:
     msg: System {{ smb_share }} 
 
-#- name: Create mapped drive with credentials that do not persist on the next logon
-#  community.windows.win_mapped_drive:
-#    letter: Z
-#    path: '\\{{ smb_share.path }}'
-#    state: present
-#    username: '{{ smb_share.user }}'
-#    password: '{{ smb_share.password }}'
-#  with_items: '{{ smb_share }}'
-
-- name: Map SMB share
-  win_shell: |
-    net use \\'{{ smb_share.path }}' '{{ smb_share.password }}' /user:'{{ smb_share.user }}'
+- name: Create mapped drive with credentials that do not persist on the next logon
+  community.windows.win_mapped_drive:
+    letter: Z
+    path: \\'{{ smb_share.path }}'
+    state: present
+    username: '{{ smb_share.user }}'
+    password: '{{ smb_share.password }}'
   with_items: '{{ smb_share }}'
+
+#- name: Map SMB share
+#  win_shell: |
+#    net use \\'{{ smb_share.path }}' '{{ smb_share.password }}' /user:'{{ smb_share.user }}'
+#  with_items: '{{ smb_share }}'
 
 - name: Install Storefront Components
   block:
