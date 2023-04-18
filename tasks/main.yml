@@ -21,7 +21,7 @@
 
 - name: Map SMB share
   win_shell: |
-    net use \\10.10.1.18 '{{ smb_share_password }}' /user:'{{ smb_share_username }}'
+    net use \\10.10.1.22 '{{ smb_share_password }}' /user:'{{ smb_share_username }}'
 
 - name: Install Storefront Components
   block:
