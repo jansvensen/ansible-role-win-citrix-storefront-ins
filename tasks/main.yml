@@ -1,14 +1,14 @@
 ---
-#- name: Install Storefront Pre-Reqs
-#  win_feature:
-#    name: '{{ item }}'
-#    state: present
-#  with_items: '{{ citrix_storefront_prereqs }}'
-#  register: win_feature
+- name: Install Storefront Pre-Reqs
+  win_feature:
+    name: '{{ item }}'
+    state: present
+  with_items: '{{ citrix_storefront_prereqs }}'
+  register: win_feature
 
-#- name: Reboot
-#  ansible.windows.win_reboot:
-#  when: win_feature.changed
+- name: Reboot
+  ansible.windows.win_reboot:
+  when: win_feature.changed
 
 - name: Create Log Folder
   win_file:
