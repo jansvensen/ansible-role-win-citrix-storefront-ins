@@ -15,6 +15,10 @@
     path: C:\Logs
     state: directory
 
+- name: Debug Output
+  ansible.builtin.debug:
+    msg: System {{ smb_share }} 
+
 - name: Map SMB share
   win_shell: |
     net use '{{ smb_share.path }}' '{{ smb_share.password }}' /user:'{{ smb_share.user }}'
