@@ -12,7 +12,7 @@
 
 - name: Create Log Folder
   win_file:
-    path: C:\Logs
+    path: '{{ directory_logging }}'
     state: directory
 
 - name: Create mapped drive with credentials that do not persist on the next logon
@@ -27,7 +27,7 @@
   block:
     - win_package:
         path: "{{ citrix_storefront_sources_path }}\\CitrixStoreFront-x64.exe"
-        arguments: -silent -noreboot -logpath C:\Logs
+        arguments: -silent -noreboot -logpath '{{ directory_logging }}'
         state: present
         expected_return_code: [0, 3, 4, 3010]
         creates_path: C:\ProgramData\Citrix\Storefront Install
@@ -38,7 +38,7 @@
     - win_reboot:
     - win_package:
         path: "{{ citrix_storefront_sources_path }}\\CitrixStoreFront-x64.exe"
-        arguments: /configure_firewall /noreboot /quiet /logpath C:\Logs
+        arguments: /configure_firewall /noreboot /quiet /logpath '{{ directory_logging }}'
         state: present
         expected_return_code: [0, 3, 4, 3010]
         creates_path: C:\ProgramData\Citrix\Storefront Install
