@@ -22,7 +22,7 @@
 - name: Create mapped drive with credentials that do not persist on the next logon
   community.windows.win_mapped_drive:
     letter: '{{ smb_share_letter }}'
-    path: '{{ smb_share_path }}'
+    path: '\\{{ smb_share_path }}\mnt'
     state: present
     username: '{{ smb_share_username }}'
     password: '{{ smb_share_password }}'
