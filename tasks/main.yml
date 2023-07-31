@@ -15,6 +15,10 @@
     path: '{{ directory_logging }}'
     state: directory
 
+- name: Print the path
+  ansible.builtin.debug:
+    msg: '{{ smb_share_path }}'
+
 - name: Create mapped drive with credentials that do not persist on the next logon
   community.windows.win_mapped_drive:
     letter: '{{ smb_share_letter }}'
