@@ -15,13 +15,9 @@
     path: C:\Logs
     state: directory
 
-#- name: Map SMB share
-#  win_shell: |
-#    net use \\10.10.1.22 '{{ smb_share_password }}' /user:'{{ smb_share_username }}'
-
 - name: Create mapped drive with credentials that do not persist on the next logon
   community.windows.win_mapped_drive:
-    letter: M
+    letter: S
     path: '{{ smb_share_path }}'
     state: present
     username: '{{ smb_share_username }}'
