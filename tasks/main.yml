@@ -28,6 +28,7 @@
     password: '{{ smb_share_password }}'
 
 - name: Install Storefront Components
+  become: yes
   block:
     - win_package:
         path: "{{ citrix_storefront_sources_path }}\\CitrixStoreFront-x64.exe"
