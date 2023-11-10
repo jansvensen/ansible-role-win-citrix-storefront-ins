@@ -19,18 +19,34 @@
   ansible.builtin.debug:
     msg: '{{ smb_share_path }}'
 
-- name: Create mapped drive with credentials that do not persist on the next logon
-  community.windows.win_mapped_drive:
-    letter: '{{ smb_share_letter }}'
-    path: '\\{{ smb_share_path }}\mnt'
-    state: present
-    username: '{{ smb_share_username }}'
-    password: '{{ smb_share_password }}'
+#- name: Create mapped drive with credentials that do not persist on the next logon
+#  community.windows.win_mapped_drive:
+#    letter: '{{ smb_share_letter }}'
+#    path: '\\{{ smb_share_path }}\mnt'
+#    state: present
+#    username: '{{ smb_share_username }}'
+#    password: '{{ smb_share_password }}'
+
+- name: create install folder
+  win_file: 
+    path: '{{ citrix_installfolder }}'
+    state: directory
+
+- name: Map SMB share
+  win_shell: |
+    net use \\10.10.1.22 '{{ smb_share_password }}' /user:'{{ smb_share_username }}'
+
+- name: Copy Citrix storefront to the local disk
+  win_copy:
+    src: '{{ citrix_storefront_exe_path_src }}'
+    remote_src: true
+    dest: '{{ citrix_storefront_exe_path_dest }}'
+    force: no
 
 - name: Install Storefront Components
   block:
     - win_package:
-        path: "{{ citrix_storefront_sources_path }}\\CitrixStoreFront-x64.exe"
+        path: "{{ citrix_storefront_exe_path_dest }}"
         arguments: -silent -noreboot -logpath '{{ directory_logging }}'
         state: present
         expected_return_code: [0, 3, 4, 3010]
@@ -41,7 +57,7 @@
           msg: 'Going to reboot and try again'
     - win_reboot:
     - win_package:
-        path: "{{ citrix_storefront_sources_path }}\\CitrixStoreFront-x64.exe"
+        path: "{{ citrix_storefront_exe_path_dest }}"
         arguments: /configure_firewall /noreboot /quiet /logpath '{{ directory_logging }}'
         state: present
         expected_return_code: [0, 3, 4, 3010]
