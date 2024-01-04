@@ -26,30 +26,30 @@
       path: '{{ directory_logging }}'
       state: directory
 
-  - name: Create Download Folder
+  - name: Create Install Folder
     win_file:
-      path: C:\Download
+      path: '{{ directory_install }}'
       state: directory
 
-  - name: Create Citrix Download Folder
+  - name: Create Citrix Install Folder
     win_file:
-      path: C:\Download\Citrix
+      path: '{{ directory_install }}\Citrix'
       state: directory
 
   - name: Check if Citrix ISO is downloaded yet
     win_stat:
-      path: "C:\\Download\\Citrix\\{{citrix.source}}"
+      path: '{{ directory_install }}\Citrix\{{citrix.installation.source}}'
     register: citrix_iso
 
   - name: Download Citrix ISO
     win_get_url:
-      url: "{{citrix.path}}/{{citrix.version}}/{{citrix.source}}"
-      dest: "C:\\Download\\Citrix\\{{citrix.source}}"
+      url: '{{citrix.path}}/{{citrix.version}}/{{citrix.installation.source}}'
+      dest: '{{ directory_install }}\Citrix\{{citrix.installation.source}}'
     when: citrix_iso.stat.exists == false
 
   - name: Register iso path
     set_fact:
-      iso_path: "C:\\Download\\Citrix\\{{citrix.source}}"
+      iso_path: '{{ directory_install }}\Citrix\{{citrix.installation.source}}'
 
   - name: Check for pending reboot
     win_shell: (Test-PendingReboot -SkipConfigurationManagerClientCheck).IsRebootPending
@@ -57,7 +57,7 @@
 
   - name: Set fact for pending reboot
     set_fact:
-      pending_reboot: "{{ pending_reboot.stdout | trim | lower }}"
+      pending_reboot: '{{ pending_reboot.stdout | trim | lower }}'
 
   - name: Reboot to remove the pending reboot
     ansible.windows.win_reboot:
@@ -65,13 +65,13 @@
 
   - name: Mount the Citrix installation ISO
     win_disk_image:
-      image_path: "{{ iso_path }}"
+      image_path: '{{ iso_path }}'
       state: present
     register: disk_image_out
 
   - name: Install Citrix Storefront role
     win_package:
-      path: "{{ disk_image_out.mount_paths[0] }}\\x64\\Storefront\\CitrixStoreFront-x64.exe"
+      path: '{{ disk_image_out.mount_paths[0] }}\\x64\\Storefront\\CitrixStoreFront-x64.exe'
       arguments: -silent
       state: present
       expected_return_code: [0, 3, 3010]
@@ -79,7 +79,7 @@
 
   - name: Unmount Citrix installation ISO
     win_disk_image:
-      image_path: "{{ iso_path }}"
+      image_path: '{{ iso_path }}'
       state: absent
 
   - name: Reboot to complete Citrix Storefront installation
