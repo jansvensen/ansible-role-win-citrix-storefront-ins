@@ -23,33 +23,33 @@
 
   - name: Create Log Folder
     win_file:
-      path: '{{ directory_logging }}'
+      path: '{{ win.directory.logging }}'
       state: directory
 
   - name: Create Install Folder
     win_file:
-      path: '{{ directory_install }}'
+      path: '{{ win.directory.install }}'
       state: directory
 
   - name: Create Citrix Install Folder
     win_file:
-      path: '{{ directory_install }}\Citrix'
+      path: '{{ win.directory.install }}\Citrix'
       state: directory
 
   - name: Check if Citrix ISO is downloaded yet
     win_stat:
-      path: '{{ directory_install }}\Citrix\{{ citrix.installation.source }}'
+      path: '{{ win.directory.install }}\Citrix\{{ citrix.installation.source }}'
     register: citrix_iso
 
   - name: Download Citrix ISO
     win_get_url:
       url: '{{ citrix.installation.path }}/{{ citrix.version.number }}/{{ citrix.installation.source }}'
-      dest: '{{ directory_install }}\Citrix\{{ citrix.installation.source }}'
+      dest: '{{ win.directory.install }}\Citrix\{{ citrix.installation.source }}'
     when: citrix_iso.stat.exists == false
 
   - name: Register iso path
     set_fact:
-      iso_path: '{{ directory_install }}\Citrix\{{ citrix.installation.source }}'
+      iso_path: '{{ win.directory.install }}\Citrix\{{ citrix.installation.source }}'
 
   - name: Check for pending reboot
     win_shell: (Test-PendingReboot -SkipConfigurationManagerClientCheck).IsRebootPending
