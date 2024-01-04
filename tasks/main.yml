@@ -1,69 +1,87 @@
 ---
-- name: Install Storefront Pre-Reqs
-  win_feature:
-    name: '{{ item }}'
-    state: present
-  with_items: '{{ citrix_storefront_prereqs }}'
-  register: win_feature
+  - name: Install NuGet
+    win_shell: Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
 
-- name: Reboot
-  ansible.windows.win_reboot:
-  when: win_feature.changed
+  - name: Check for PendingReboot module
+    win_psmodule:
+      name: PendingReboot
+      state: present
+      accept_license: true
+    retries: 3
+    delay: 10
+    register: result
+    until: result is not failed
 
-- name: Create Log Folder
-  win_file:
-    path: '{{ directory_logging }}'
-    state: directory
+  - name: Install Citrix Storefront prerequisites
+    win_feature:
+      name: '{{ item }}'
+      state: present
+    with_items: '{{ citrix.storefront.installation.prereqs }}'
 
-- name: Print the path
-  ansible.builtin.debug:
-    msg: '{{ smb_share_path }}'
+  - name: Reboot machine for Windows Features
+    ansible.windows.win_reboot:
 
-#- name: Create mapped drive with credentials that do not persist on the next logon
-#  community.windows.win_mapped_drive:
-#    letter: '{{ smb_share_letter }}'
-#    path: '\\{{ smb_share_path }}\mnt'
-#    state: present
-#    username: '{{ smb_share_username }}'
-#    password: '{{ smb_share_password }}'
+  - name: Create Log Folder
+    win_file:
+      path: '{{ directory_logging }}'
+      state: directory
 
-- name: create install folder
-  win_file: 
-    path: '{{ citrix_installfolder }}'
-    state: directory
+  - name: Create Download Folder
+    win_file:
+      path: C:\Download
+      state: directory
 
-- name: Map SMB share
-  win_shell: |
-    net use \\10.10.1.22 '{{ smb_share_password }}' /user:'{{ smb_share_username }}'
+  - name: Create Citrix Download Folder
+    win_file:
+      path: C:\Download\Citrix
+      state: directory
 
-- name: Copy Citrix storefront to the local disk
-  win_copy:
-    src: '{{ citrix_storefront_exe_path_src }}'
-    remote_src: true
-    dest: '{{ citrix_storefront_exe_path_dest }}'
-    force: no
+  - name: Check if Citrix ISO is downloaded yet
+    win_stat:
+      path: "C:\\Download\\Citrix\\{{citrix.source}}"
+    register: citrix_iso
 
-- name: Install Storefront Components
-  block:
-    - win_package:
-        path: "{{ citrix_storefront_exe_path_dest }}"
-        arguments: -silent -noreboot -logpath '{{ directory_logging }}'
-        state: present
-        expected_return_code: [0, 3, 4, 3010]
-        creates_path: C:\ProgramData\Citrix\Storefront Install
-      register: sf_install
-  rescue:
-    - debug:
-          msg: 'Going to reboot and try again'
-    - win_reboot:
-    - win_package:
-        path: "{{ citrix_storefront_exe_path_dest }}"
-        arguments: /configure_firewall /noreboot /quiet /logpath '{{ directory_logging }}'
-        state: present
-        expected_return_code: [0, 3, 4, 3010]
-        creates_path: C:\ProgramData\Citrix\Storefront Install
-      register: sf_install
+  - name: Download Citrix ISO
+    win_get_url:
+      url: "{{citrix.path}}/{{citrix.version}}/{{citrix.source}}"
+      dest: "C:\\Download\\Citrix\\{{citrix.source}}"
+    when: citrix_iso.stat.exists == false
 
-- name: Reboot after Storefront
-  win_reboot:
-  when: sf_install.changed
+  - name: Register iso path
+    set_fact:
+      iso_path: "C:\\Download\\Citrix\\{{citrix.source}}"
+
+  - name: Check for pending reboot
+    win_shell: (Test-PendingReboot -SkipConfigurationManagerClientCheck).IsRebootPending
+    register: pending_reboot
+
+  - name: Set fact for pending reboot
+    set_fact:
+      pending_reboot: "{{ pending_reboot.stdout | trim | lower }}"
+
+  - name: Reboot to remove the pending reboot
+    ansible.windows.win_reboot:
+    when: pending_reboot == true
+
+  - name: Mount the Citrix installation ISO
+    win_disk_image:
+      image_path: "{{ iso_path }}"
+      state: present
+    register: disk_image_out
+
+  - name: Install Citrix Storefront role
+    win_package:
+      path: "{{ disk_image_out.mount_paths[0] }}\\x64\\Storefront\\CitrixStoreFront-x64.exe"
+      arguments: -silent
+      state: present
+      expected_return_code: [0, 3, 3010]
+    register: citrix_installation
+
+  - name: Unmount Citrix installation ISO
+    win_disk_image:
+      image_path: "{{ iso_path }}"
+      state: absent
+
+  - name: Reboot to complete Citrix Storefront installation
+    ansible.windows.win_reboot:
+    when: citrix_installation.changed
