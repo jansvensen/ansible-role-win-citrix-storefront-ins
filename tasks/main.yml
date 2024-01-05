@@ -87,12 +87,3 @@
 - name: Reboot to complete Citrix Storefront installation
   ansible.windows.win_reboot:
   when: citrix_installation.changed
-
-- name: Add registry for future installation check
-  win_regedit:
-    path: HKLM:\Software\GO-EUC\Citrix
-    name: sf_version
-    data: "{{ citrix.version }}"
-    type: string
-
-when: (citrix_version.exists == false) or (citrix_version.value != citrix.version)
