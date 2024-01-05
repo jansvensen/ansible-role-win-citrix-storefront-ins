@@ -3,7 +3,7 @@
   win_feature:
     name: '{{ item }}'
     state: present
-  with_items: '{{ citrix_storefront_prereqs }}'
+  with_items: '{{ citrix.storefront.installation.prereqs }}'
   register: win_feature
 
 - name: Reboot
