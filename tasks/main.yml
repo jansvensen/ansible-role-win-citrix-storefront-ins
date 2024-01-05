@@ -30,7 +30,7 @@
 - name: Install Storefront Components
   block:
     - win_package:
-        path: "{{ citrix_storefront_sources_path }}\\CitrixStoreFront-x64.exe"
+        path: "{{ citrix.storefront.installation.path }}\\CitrixStoreFront-x64.exe"
         arguments: -silent -noreboot -logpath '{{ directory_logging }}'
         state: present
         expected_return_code: [0, 3, 4, 3010]
@@ -41,7 +41,7 @@
           msg: 'Going to reboot and try again'
     - win_reboot:
     - win_package:
-        path: "{{ citrix_storefront_sources_path }}\\CitrixStoreFront-x64.exe"
+        path: "{{ citrix.storefront.installation.path }}\\CitrixStoreFront-x64.exe"
         arguments: /configure_firewall /noreboot /quiet /logpath '{{ directory_logging }}'
         state: present
         expected_return_code: [0, 3, 4, 3010]
